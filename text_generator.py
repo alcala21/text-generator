@@ -1,7 +1,8 @@
 # Write your code here
+import random
 from nltk.tokenize import WhitespaceTokenizer
-Tokenizer = WhitespaceTokenizer()
 from collections import defaultdict
+Tokenizer = WhitespaceTokenizer()
 
 
 class TextGenerator:
@@ -48,6 +49,19 @@ class TextGenerator:
             except KeyError:
                 print("Key Error. The requested word is not in the model. Please input another word.")
 
+    def generate_sentence(self):
+        res = [random.choice(list(self.bigrams.keys()))]
+        for _ in range(9):
+            wl = self.bigrams[res[-1]]
+            words = list(wl.keys())
+            values = list(wl.values())
+            res += random.choices(population=words, weights=values, k=1)
+        print(" ".join(res))
+
+    def generate_sentences(self):
+        for _ in range(10):
+            self.generate_sentence()
+
 
 def start():
     file = input()
@@ -58,7 +72,7 @@ def start():
     tg.tokenize()
     tg.build_bigrams()
     tg.summarize_bigrams()
-    tg.get_bigram()
+    tg.generate_sentences()
 
 
 if __name__ == "__main__":
