@@ -2,6 +2,7 @@
 import random
 from nltk.tokenize import WhitespaceTokenizer
 from collections import defaultdict
+import re
 Tokenizer = WhitespaceTokenizer()
 
 
@@ -13,6 +14,7 @@ class TextGenerator:
         self.bigrams = []
         self.all_tokens = 0
         self.unique_tokens = 0
+        self.res = []
 
     def tokenize(self):
         self.tokens = Tokenizer.tokenize(self.text)
@@ -28,39 +30,62 @@ class TextGenerator:
         self.bigrams = dict([(k, dict(sorted(v.items(), reverse=True, key=lambda x: x[1]))) for k, v in temp.items()])
         temp = None
 
-    def print_tails(self, _val):
-        print(f"Head: {_val}")
-        td = self.bigrams[_val]
-        for k, v in td.items():
-            print(f"Tail: {k:10s}    Count: {v}")
+    def generate_word(self, pos="first", wl=dict()):
+        word = ""
+        words = list(wl.keys())
+        values = list(wl.values())
+        count = 0
 
-    def get_bigram(self):
-        while True:
-            print()
-            try:
-                val = input()
-                if val == "exit":
-                    break
-                self.print_tails(val)
-            except ValueError:
-                print("Type Error. Please input an integer.")
-            except IndexError:
-                print("Index Error. Please input a value that is not greater than the number of all bigrams.")
-            except KeyError:
-                print("Key Error. The requested word is not in the model. Please input another word.")
+        if pos == "first":
+            all_words = list(self.bigrams.keys())
+            while not re.match(r"^[A-Z].*[a-z,]$", word):
+                word = random.choice(all_words)
+        elif pos == "middle":
+            while not re.match(r".*[a-z,]$", word) and count < len(words):
+                word = random.choices(population=words, weights=values, k=1)[0]
+                count += 1
+        elif pos == "end":
+            while not re.match(r".*[\.!\?]$", word) and count < len(words):
+                word = words[count]
+                count += 1
+
+        if count == len(words) and pos != "first":
+            return None
+        return word
 
     def generate_sentence(self):
-        res = [random.choice(list(self.bigrams.keys()))]
-        for _ in range(9):
-            wl = self.bigrams[res[-1]]
-            words = list(wl.keys())
-            values = list(wl.values())
-            res += random.choices(population=words, weights=values, k=1)
-        print(" ".join(res))
+        if not self.res:
+            self.res = [self.generate_word()]
+
+        if len(self.res) >= 5:
+            if re.match(r".*[\.!\?]$", self.res[-1]):
+                return None
+
+        wl = self.bigrams[self.res[-1]]
+
+        if 0 < len(self.res) < 5:
+            word = self.generate_word("middle", wl)
+            if not word:
+                self.res = self.res[:-1]
+                return self.generate_sentence()
+            else:
+                self.res += [word]
+        else:
+            word = self.generate_word("end", wl)
+            if not word:
+                self.res += [random.choice(list(wl.keys()))]
+                return self.generate_sentence()
+            else:
+                self.res += [word]
+                return None
+
+        return self.generate_sentence()
 
     def generate_sentences(self):
         for _ in range(10):
+            self.res = []
             self.generate_sentence()
+            print(" ".join(self.res))
 
 
 def start():
@@ -77,3 +102,4 @@ def start():
 
 if __name__ == "__main__":
     start()
+
