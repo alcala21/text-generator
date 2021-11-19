@@ -8,20 +8,23 @@ class TextGenerator:
     def __init__(self, text):
         self.text = text
         self.tokens = []
+        self.bigrams = []
         self.all_tokens = 0
         self.unique_tokens = 0
 
     def tokenize(self):
         self.tokens = Tokenizer.tokenize(self.text)
 
-    def print_stats(self):
-        self.all_tokens = len(self.tokens)
-        self.unique_tokens = len(set(self.tokens))
-        print("Corpus statistics")
-        print("All tokens:", self.all_tokens)
-        print("Unique tokens:", self.unique_tokens)
+    def build_bigrams(self):
+        self.bigrams = [(self.tokens[i], self.tokens[i + 1]) for i in range(len(self.tokens) - 1)]
 
-    def get_token(self):
+    def print_bigram_stats(self):
+        print("Number of bigrams:", len(self.bigrams))
+
+    def print_bigram(self, i):
+        print(f"Head: {self.bigrams[i][0]}    Tail: {self.bigrams[i][1]}")
+
+    def get_bigram(self):
         print()
         while True:
             try:
@@ -29,26 +32,24 @@ class TextGenerator:
                 if val == "exit":
                     break
                 val = int(val)
-                print(self.tokens[val])
+                self.print_bigram(val)
             except ValueError:
                 print("Type Error. Please input an integer.")
             except IndexError:
-                print("Index Error. Please input an integer that is in the range of the corpus.")
+                print("Index Error. Please input a value that is not greater than the number of all bigrams.")
 
 
 def start():
     file = input()
-    # file = "corpus.txt"
     with open(file, 'r', encoding='utf-8') as f:
         text = f.read()
 
     tg = TextGenerator(text)
     tg.tokenize()
-    tg.print_stats()
-    tg.get_token()
+    tg.build_bigrams()
+    tg.print_bigram_stats()
+    tg.get_bigram()
 
 
 if __name__ == "__main__":
     start()
-
-
