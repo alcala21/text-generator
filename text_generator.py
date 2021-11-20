@@ -33,10 +33,6 @@ class TextGenerator:
         return bool(re.match(r"^[A-Z][^.!?]*[a-z,]?$", word))
 
     @staticmethod
-    def middle(word):
-        return bool(re.match(r".*[A-z,]$", word))
-
-    @staticmethod
     def ending(word):
         return bool(re.match(r".*[\.!\?]$", word))
 
