@@ -4,6 +4,7 @@ from nltk.tokenize import WhitespaceTokenizer
 from collections import defaultdict
 import re
 Tokenizer = WhitespaceTokenizer()
+# random.seed(3)
 
 
 class TextGenerator:
@@ -12,9 +13,9 @@ class TextGenerator:
         self.text = text
         self.tokens = []
         self.bigrams = []
-        self.all_tokens = 0
-        self.unique_tokens = 0
+        self.map = defaultdict(dict)
         self.res = []
+        self.starters = []
 
     def tokenize(self):
         self.tokens = Tokenizer.tokenize(self.text)
@@ -23,66 +24,50 @@ class TextGenerator:
         self.bigrams = [(self.tokens[i], self.tokens[i + 1]) for i in range(len(self.tokens) - 1)]
 
     def summarize_bigrams(self):
-        temp = defaultdict(dict)
         for bi in self.bigrams:
-            temp[bi[0]][bi[1]] = temp[bi[0]].get(bi[1], 0) + 1
+            self.map[bi[0]][bi[1]] = self.map[bi[0]].get(bi[1], 0) + 1
 
-        self.bigrams = dict([(k, dict(sorted(v.items(), reverse=True, key=lambda x: x[1]))) for k, v in temp.items()])
-        temp = None
+        self.starters = [x for x, v in self.map.items()
+                        if self.starter(x) and len(v) > 2]
 
-    def generate_word(self, pos="first", wl=dict()):
-        word = ""
-        words = list(wl.keys())
-        values = list(wl.values())
-        count = 0
+    @staticmethod
+    def starter(word):
+        return bool(re.match(r"^[A-Z][^.!?]*[a-z,]?$", word))
 
-        if pos == "first":
-            all_words = list(self.bigrams.keys())
-            while not re.match(r"^[A-Z].*[a-z,]$", word):
-                word = random.choice(all_words)
-        elif pos == "middle":
-            while not re.match(r".*[a-z,]$", word) and count < len(words):
-                word = random.choices(population=words, weights=values, k=1)[0]
-                count += 1
-        elif pos == "end":
-            while not re.match(r".*[\.!\?]$", word) and count < len(words):
-                word = words[count]
-                count += 1
+    @staticmethod
+    def middle(word):
+        return bool(re.match(r".*[a-z,]$", word))
 
-        if count == len(words) and pos != "first":
-            return None
-        return word
+    @staticmethod
+    def ending(word):
+        return bool(re.match(r".*[\.!\?]$", word))
+
+    @staticmethod
+    def sample_word(words, values):
+        return random.choices(population=words, weights=values,k=1)[0]
 
     def generate_sentence(self):
         if not self.res:
-            self.res = [self.generate_word()]
+            self.res = [random.choice(self.starters)]
 
-        if len(self.res) >= 5:
-            if re.match(r".*[\.!\?]$", self.res[-1]):
-                return None
+        if len(self.res) >= 5 and self.ending(self.res[-1]):
+            return None
 
-        wl = self.bigrams[self.res[-1]]
+        wl = self.map[self.res[-1]]
 
-        if 0 < len(self.res) < 5:
-            word = self.generate_word("middle", wl)
-            if not word:
-                self.res = self.res[:-1]
-                return self.generate_sentence()
-            else:
-                self.res += [word]
+        word = self.sample_word(list(wl.keys()), list(wl.values()))
+
+        if self.middle(word):
+            self.res += [word]
+        elif self.ending(word) and len(self.res) >= 5:
+            self.res += [word]
         else:
-            word = self.generate_word("end", wl)
-            if not word:
-                self.res += [random.choice(list(wl.keys()))]
-                return self.generate_sentence()
-            else:
-                self.res += [word]
-                return None
+            self.res.pop(-1)
 
-        return self.generate_sentence()
+        self.generate_sentence()
 
     def generate_sentences(self):
-        for _ in range(10):
+        for i in range(10):
             self.res = []
             self.generate_sentence()
             print(" ".join(self.res))
@@ -90,6 +75,7 @@ class TextGenerator:
 
 def start():
     file = input()
+    # file = "corpus.txt"
     with open(file, 'r', encoding='utf-8') as f:
         text = f.read()
 
