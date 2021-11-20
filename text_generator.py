@@ -5,6 +5,7 @@ from collections import defaultdict
 import re
 Tokenizer = WhitespaceTokenizer()
 
+
 class TextGenerator:
 
     def __init__(self, text):
@@ -26,7 +27,7 @@ class TextGenerator:
             self.map[" ".join(tri[:2])][tri[2]] = self.map[" ".join(tri[:2])].get(tri[2], 0) + 1
 
         self.starters = [x for x, v in self.map.items()
-                        if self.starter(x) and len(v) > 2]
+                         if self.starter(x) and len(v) > 2]
 
     @staticmethod
     def starter(word):
@@ -34,11 +35,11 @@ class TextGenerator:
 
     @staticmethod
     def ending(word):
-        return bool(re.match(r".*[\.!\?]$", word))
+        return bool(re.match(r".*[.!?]$", word))
 
     @staticmethod
     def sample_word(words, values):
-        return random.choices(population=words, weights=values,k=1)[0]
+        return random.choices(population=words, weights=values, k=1)[0]
 
     def generate_sentence(self):
         if not self.res:
