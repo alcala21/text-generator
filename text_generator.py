@@ -45,38 +45,16 @@ class TextGenerator:
         return random.choices(population=words, weights=values,k=1)[0]
 
     def generate_sentence(self):
-        count = 0
-        while True:
-            if not self.res:
-                self.res = random.choice(self.starters).split()
+        if not self.res:
+            self.res = random.choice(self.starters).split()
 
-            if len(self.res) >= 5 and self.ending(self.res[-1]):
-                break
-
-            self.add_words()
-            count += 1
-            if count == 100:
-                a = 1
-
-    def add_words(self):
-        key = " ".join(self.res[-2:])
-        wl = self.map[key]
-        if len(wl) == 0:
-            bkey = " ".join(self.res[-3:-1])
-            self.map[bkey].pop(self.res.pop(-1))
+        if len(self.res) >= 5 and self.ending(self.res[-1]):
             return
-        word = self.sample_word(list(wl.keys()), list(wl.values()))
 
-        if self.middle(word):
-            self.res += [word]
-        elif self.ending(word) and len(self.res) >= 4:
-            self.res += [word]
-        else:
-            if len(self.res) > 2:
-                self.res.pop(-1)
-                self.map[key].pop(word)
-            else:
-                self.res = []
+        wl = self.map[" ".join(self.res[-2:])]
+        self.res += [self.sample_word(list(wl.keys()), list(wl.values()))]
+
+        return self.generate_sentence()
 
     def generate_sentences(self):
         for i in range(10):
@@ -86,8 +64,8 @@ class TextGenerator:
 
 
 def start():
-    # file = input()
-    file = "corpus.txt"
+    file = input()
+    # file = "corpus.txt"
     with open(file, 'r', encoding='utf-8') as f:
         text = f.read()
 
@@ -100,4 +78,3 @@ def start():
 
 if __name__ == "__main__":
     start()
-    
