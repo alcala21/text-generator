@@ -4,7 +4,6 @@ from nltk.tokenize import WhitespaceTokenizer
 from collections import defaultdict
 import re
 Tokenizer = WhitespaceTokenizer()
-# random.seed(3)
 
 
 class TextGenerator:
@@ -75,7 +74,6 @@ class TextGenerator:
 
 def start():
     file = input()
-    # file = "corpus.txt"
     with open(file, 'r', encoding='utf-8') as f:
         text = f.read()
 
